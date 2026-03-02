@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const cardStatsContainer = document.querySelector(".stats-card");
 
 
-    function validUserName(username){
+    function validUsername(username){
         if(username.trim() === ""){
             alert("Username should not be empty");
             return false;
@@ -25,9 +25,33 @@ document.addEventListener("DOMContentLoaded", function(){
         return isMatching;
     }
 
+    async function fetchUserDetails(username){
+        const url = `https://leetcode.com/graphql/`
+        try{
+            searchButton.textContent = "Searching...";
+            searchButton.disabled = true;
+
+            const response = await fetch(url);
+            if(!response.ok) {
+                throw new Error("Unable to fetch the user details")
+            }
+            const data = await response.json();
+            console.log("Logging data:", data);
+        }
+        catch(error){
+            statsContainer.innerHTML = `<p>No Data Found</p>`
+        }
+        finally{
+            searchButton.textContent = "Search";
+            searchButton.disabled = false;
+        }
+    }
+
     searchButton.addEventListener('click', function(){
         const username = userNameInput.value;
         console.log("logging username: ", username);
-        
+        if(validUsername(username)){
+            fetchUserDetails(username);
+        }
     })
 })
