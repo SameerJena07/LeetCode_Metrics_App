@@ -12,31 +12,56 @@ document.addEventListener("DOMContentLoaded", function(){
     const cardStatsContainer = document.querySelector(".stats-card");
 
 
-    function validUsername(username){
-        if(username.trim() === ""){
-            alert("Username should not be empty");
-            return false;
-        }
-        const regex = /^[a-zA-Z0-9_-]{1,15}$/;
-        const isMatching = regex.test(username);
-        if(!isMatching){
-            alert("Invalid Username");
-        }
-        return isMatching;
+   function validUsername(username){
+
+    if(username.trim() === ""){
+        alert("Username should not be empty");
+        return false;
+    }
+
+    const regex = /^[a-zA-Z0-9_-]{1,15}/;
+
+    const isMatching = regex.test(username);
+
+    if(!isMatching){
+        alert("Invalid Username");
+    }
+
+    return isMatching;
     }
 
     async function fetchUserDetails(username){
-        const url = `https://leetcode.com/graphql/`
+        
         try{
             searchButton.textContent = "Searching...";
             searchButton.disabled = true;
 
-            const response = await fetch(url);
+            // const response = await fetch(url);
+            const proxyUrl = `https://cors-anywhere.herokuapp.com/`;
+            const targetUrl = `https://leetcode.com/graphql/`;
+
+            const myHeaders = new Headers();
+            myHeaders.append("content-type", "application/json");
+
+            const graphql = JSON.stringify({
+                query: "\n    query userSessionProgress($username: String!) {\n  allQuestionsCount {\n    difficulty\n    count\n  }\n  matchedUser(username: $username) {\n    submitStats {\n      acSubmissionNum {\n        difficulty\n        count\n        submissions\n      }\n      totalSubmissionNum {\n        difficulty\n        count\n        submissions\n      }\n    }\n  }\n}\n    ",variables: {"username": `${username}`}
+            })
+            const requestOptions = {
+                method: "POST",
+                headers: myHeaders,
+                body: graphql,
+                redirect: "follow"
+            };
+
+            const response = await fetch(proxyUrl+targetUrl, requestOptions);
+
             if(!response.ok) {
                 throw new Error("Unable to fetch the user details")
             }
-            const data = await response.json();
-            console.log("Logging data:", data);
+            const parsedData = await response.json();
+            console.log("Logging data:", parsedData);
+
+            displayUserData(parsedData);
         }
         catch(error){
             statsContainer.innerHTML = `<p>No Data Found</p>`
@@ -45,6 +70,18 @@ document.addEventListener("DOMContentLoaded", function(){
             searchButton.textContent = "Search";
             searchButton.disabled = false;
         }
+    }
+
+    function displayUserData(parsedData){
+        const totalQues = parsedData.data.allQuestionsCount[0].count;
+        const totalEasyQues = parsedData.data.allQuestionsCount[1].count;
+        const totalMediumQues = parsedData.data.allQuestionsCount[2].count;
+        const totalHardQues = parsedData.data.allQuestionsCount[3].count;
+
+        const solvedTotalQues = parsedData.data.matchedUser.submitStats.acSubmissionNum[0].count;
+        const solvedTotalEasyQues = parsedData.data.matchedUser.submitStats.acSubmissionNum[1].count;
+        const solvedTotalMediumQues = parsedData.data.matchedUser.submitStats.acSubmissionNum[2].count;
+        const solvedTotalHardQues = parsedData.data.matchedUser.submitStats.acSubmissionNum[3].count;
     }
 
     searchButton.addEventListener('click', function(){
