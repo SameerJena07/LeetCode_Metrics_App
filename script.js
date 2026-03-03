@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function(){
     const easyLabel = document.getElementById('easy-label');
     const mediumLabel = document.getElementById('medium-label');
     const hardLabel = document.getElementById('hard-label');
-    const cardStatsContainer = document.querySelector(".stats-card");
+    const cardStatsContainer = document.querySelector(".stats-cards");
 
 
    function validUsername(username){
@@ -35,6 +35,7 @@ document.addEventListener("DOMContentLoaded", function(){
         try{
             searchButton.textContent = "Searching...";
             searchButton.disabled = true;
+            // statsContainer.classList.add("hidden");
 
             // const response = await fetch(url);
             const proxyUrl = `https://cors-anywhere.herokuapp.com/`;
@@ -64,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function(){
             displayUserData(parsedData);
         }
         catch(error){
-            statsContainer.innerHTML = `<p>No Data Found</p>`
+            statsContainer.innerHTML = `<p>${error.message}</p>`
         }
         finally{
             searchButton.textContent = "Search";
@@ -78,7 +79,6 @@ document.addEventListener("DOMContentLoaded", function(){
         circle.style.setProperty("--progress-degree", `${progressDegree}%` );
         label.textContent = `${solved}/${total}`;
     }
-
 
 
 
@@ -96,6 +96,24 @@ document.addEventListener("DOMContentLoaded", function(){
         updateProgress(solvedTotalEasyQues, totalEasyQues, easyLabel, easyProgressCircle);
         updateProgress(solvedTotalMediumQues, totalMediumQues, mediumLabel, mediumProgressCircle);
         updateProgress(solvedTotalHardQues, totalHardQues, hardLabel, hardProgressCircle);
+
+
+        const cardData = [
+            {label: "Overall Submissions", value: parsedData.data.matchedUser.submitStats.totalSubmissionNum[0].submissions},
+            {label: "Overall Easy Submissions", value: parsedData.data.matchedUser.submitStats.totalSubmissionNum[1].submissions},
+            {label: "Overall Medium Submissions", value: parsedData.data.matchedUser.submitStats.totalSubmissionNum[2].submissions},
+            {label: "Overall Hard Submissions", value: parsedData.data.matchedUser.submitStats.totalSubmissionNum[3].submissions}
+        ];
+        console.log("Card ka data: ", cardData);
+        
+        cardStatsContainer.innerHTML = cardData.map(
+            data =>
+                    `<div class="card">
+                        <h4>${data.label}</h4>
+                        <p>${data.value}</p>
+                    </div>`
+        ).join("");
+
     }
 
     searchButton.addEventListener('click', function(){
